@@ -72,6 +72,10 @@ public class DatabaseMcpTools {
         log.info("MCP tool called: executeQuery({})", sql);
 
         String trimmed = sql.trim();
+        // Strip trailing semicolon — models sometimes add one, which breaks our LIMIT append
+        if (trimmed.endsWith(";")) {
+            trimmed = trimmed.substring(0, trimmed.length() - 1).trim();
+        }
         if (!trimmed.toUpperCase().startsWith("SELECT")) {
             return "Error: only SELECT queries are allowed.";
         }
@@ -98,17 +102,18 @@ public class DatabaseMcpTools {
 
             List<String> headers = List.copyOf(rows.get(0).keySet());
             StringBuilder sb = new StringBuilder();
-            sb.append("| ").append(String.join(" | ", headers)).append(" |\n");
-            sb.append("| ").append("--- | ".repeat(headers.size())).append("\n");
+            // Return raw data rows — let the LLM generate the markdown table itself.
+            // LLMs generate tables from raw data much more reliably than echoing a pre-formatted table.
+            sb.append("Query returned ").append(rows.size()).append(" row(s). Columns: ")
+              .append(String.join(", ", headers)).append("\n\nData:\n");
             for (Map<String, Object> row : rows) {
-                sb.append("| ");
                 for (String h : headers) {
                     Object val = row.get(h);
-                    sb.append(val != null ? val.toString() : "NULL").append(" | ");
+                    sb.append(h).append("=").append(val != null ? val.toString() : "NULL").append("  ");
                 }
                 sb.append("\n");
             }
-            sb.append("\n(").append(rows.size()).append(" row(s))");
+            sb.append("\nPresent all of the above data as a markdown table with all columns and all rows.");
             return sb.toString();
         } catch (Exception e) {
             log.error("executeQuery error: {}", e.getMessage());
