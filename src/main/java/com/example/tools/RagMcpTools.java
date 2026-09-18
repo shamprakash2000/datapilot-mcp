@@ -31,6 +31,36 @@ public class RagMcpTools {
         this.jdbcTemplate = jdbcTemplate;
     }
 
+    @Tool(description = "List all documents that have been ingested into the knowledge base. " +
+            "Returns document IDs, chunk counts, and ingestion timestamps. " +
+            "Use this when the user wants to know what documents are stored.")
+    public String listDocuments() {
+        log.info("MCP tool called: listDocuments()");
+        try {
+            List<java.util.Map<String, Object>> rows = jdbcTemplate.queryForList(
+                    "SELECT id, chunk_count, ingested_at FROM knowledge_documents ORDER BY ingested_at DESC"
+            );
+
+            if (rows.isEmpty()) {
+                return "No documents have been ingested into the knowledge base yet.";
+            }
+
+            StringBuilder sb = new StringBuilder("Documents in the knowledge base:\n\n");
+            sb.append("| Document ID | Chunks | Ingested At |\n");
+            sb.append("|---|---|---|\n");
+            for (java.util.Map<String, Object> row : rows) {
+                sb.append("| ").append(row.get("id"))
+                  .append(" | ").append(row.get("chunk_count"))
+                  .append(" | ").append(row.get("ingested_at"))
+                  .append(" |\n");
+            }
+            return sb.toString().trim();
+        } catch (Exception e) {
+            log.error("listDocuments error: {}", e.getMessage());
+            return "Error listing documents: " + e.getMessage();
+        }
+    }
+
     @Tool(description = "Search the knowledge base for documents relevant to a question. " +
             "Returns the most semantically similar text passages found. " +
             "Use this when the user asks about topics that may be in stored documents.")

@@ -97,13 +97,12 @@ public class DatabaseMcpTools {
         try {
             List<Map<String, Object>> rows = jdbcTemplate.queryForList(finalSql);
             if (rows.isEmpty()) {
-                return "Query returned no rows.";
+                return "SQL_EXECUTED:\n```sql\n" + finalSql + "\n```\n\nQuery returned no rows.";
             }
 
             List<String> headers = List.copyOf(rows.get(0).keySet());
             StringBuilder sb = new StringBuilder();
-            // Return raw data rows — let the LLM generate the markdown table itself.
-            // LLMs generate tables from raw data much more reliably than echoing a pre-formatted table.
+            sb.append("SQL_EXECUTED:\n```sql\n").append(finalSql).append("\n```\n\n");
             sb.append("Query returned ").append(rows.size()).append(" row(s). Columns: ")
               .append(String.join(", ", headers)).append("\n\nData:\n");
             for (Map<String, Object> row : rows) {
@@ -113,7 +112,7 @@ public class DatabaseMcpTools {
                 }
                 sb.append("\n");
             }
-            sb.append("\nPresent all of the above data as a markdown table with all columns and all rows.");
+            sb.append("\nALWAYS show the SQL_EXECUTED block first, then present all data as a markdown table with all columns and all rows.");
             return sb.toString();
         } catch (Exception e) {
             log.error("executeQuery error: {}", e.getMessage());
