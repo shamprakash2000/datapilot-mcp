@@ -57,6 +57,24 @@ public class PineconeService {
         log.info("Pinecone batch upsert ({} chunks): {}", chunks.size(), response.body());
     }
 
+    public void deleteByIds(List<String> ids) throws Exception {
+        String idsJson = ids.stream()
+                .map(id -> "\"" + id + "\"")
+                .reduce((a, b) -> a + "," + b)
+                .orElse("");
+        String requestBody = "{\"ids\":[" + idsJson + "]}";
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(host + "/vectors/delete"))
+                .header("Content-Type", "application/json")
+                .header("Api-Key", apiKey)
+                .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        log.info("Pinecone delete ({} vectors): {}", ids.size(), response.body());
+    }
+
     public List<String> search(List<Float> queryVector, int topK) throws Exception {
         String requestBody = """
                 {
