@@ -1,8 +1,8 @@
-# gemini-knowledge-mcp-server — MCP Knowledge Server
+# datapilot-mcp — MCP Knowledge Server
 
-Standalone Spring Boot app that exposes RAG (document search) and database query capabilities over the **Model Context Protocol (MCP)**. LLM-agnostic — any MCP host (gemini-chat, Claude Desktop, Cursor, etc.) can connect and use the tools without changing a line of server code.
+Standalone Spring Boot app that exposes RAG (document search) and database query capabilities over the **Model Context Protocol (MCP)**. LLM-agnostic — any MCP host (DataPilot, Claude Desktop, Cursor, etc.) can connect and use the tools without changing a line of server code.
 
-Part of the [gemini-chat](https://github.com/shamprakash2000/gemini-chat) learning project (Phase 6).
+Part of the [DataPilot](https://github.com/shamprakash2000/datapilot) learning project (Phase 6).
 
 ---
 
@@ -37,11 +37,11 @@ Safety enforced server-side (DB tools):
 ## Architecture
 
 ```
-MCP Host (gemini-chat / Claude Desktop / any MCP client)
+MCP Host (DataPilot / Claude Desktop / any MCP client)
     │
     │  MCP protocol — JSON-RPC 2.0 over HTTP/SSE
     ▼
-gemini-knowledge-mcp-server (port 8082)
+datapilot-mcp (port 8082)
     │                    │
     ▼                    ▼
 Pinecone            Neon PostgreSQL
@@ -52,7 +52,7 @@ Gemini Embedding API
 (gemini-embedding-001, 768 dimensions)
 ```
 
-**No chat model inside this server.** The LLM lives in the host (Claude Desktop, gemini-chat). This server only stores, retrieves, and queries — the host LLM reads the results and generates answers.
+**No chat model inside this server.** The LLM lives in the host (Claude Desktop, DataPilot). This server only stores, retrieves, and queries — the host LLM reads the results and generates answers.
 
 ---
 
@@ -74,8 +74,8 @@ Gemini Embedding API
 ### Prerequisites
 - Java 17+
 - Maven 3.9+
-- Neon PostgreSQL credentials (same DB as gemini-chat — `da_products` and `da_orders` seeded by gemini-chat)
-- Pinecone index (`gemini-chat`, 768 dimensions)
+- Neon PostgreSQL credentials (same DB as DataPilot — `da_products` and `da_orders` seeded by DataPilot)
+- Pinecone index (`gemini-chat`, 768 dimensions — this is the actual index name in Pinecone)
 - Gemini API key
 
 ### Environment Variables

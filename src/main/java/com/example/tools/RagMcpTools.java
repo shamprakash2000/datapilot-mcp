@@ -11,6 +11,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -61,38 +62,15 @@ public class RagMcpTools {
         }
     }
 
-    @Tool(description = "Delete a document from the knowledge base by its document ID. " +
-            "Removes all chunks from Pinecone and the metadata record from the database. " +
-            "Use this when the user wants to remove a document or replace it with a corrected version.")
-    public String deleteDocument(String documentId) {
-        log.info("MCP tool called: deleteDocument(documentId={})", documentId);
-        try {
-            List<java.util.Map<String, Object>> rows = jdbcTemplate.queryForList(
-                    "SELECT chunk_count FROM knowledge_documents WHERE id = ?", documentId
-            );
-
-            if (rows.isEmpty()) {
-                return "Document '" + documentId + "' not found in the knowledge base.";
-            }
-
-            int chunkCount = ((Number) rows.get(0).get("chunk_count")).intValue();
-
-            List<String> chunkIds = new ArrayList<>();
-            for (int i = 0; i < chunkCount; i++) {
-                chunkIds.add(documentId + "-chunk-" + i);
-            }
-
-            pineconeService.deleteByIds(chunkIds);
-
-            jdbcTemplate.update("DELETE FROM knowledge_documents WHERE id = ?", documentId);
-
-            log.info("Deleted document '{}' ({} chunks)", documentId, chunkCount);
-            return String.format("Document '%s' deleted successfully (%d chunks removed from knowledge base).",
-                    documentId, chunkCount);
-        } catch (Exception e) {
-            log.error("deleteDocument error for '{}': {}", documentId, e.getMessage());
-            return "Error deleting document '" + documentId + "': " + e.getMessage();
-        }
+    // Converts any casing or separator style to lowercase-kebab-case.
+    // e.g. "refundPolicy", "Refund Policy", "refund_policy" → "refund-policy"
+    private static String normalizeId(String id) {
+        // Insert hyphen before each uppercase letter that follows a lowercase (camelCase split)
+        String result = id.replaceAll("([a-z])([A-Z])", "$1-$2");
+        // Replace spaces, underscores, and multiple hyphens with a single hyphen
+        result = result.replaceAll("[\\s_]+", "-");
+        result = result.replaceAll("-{2,}", "-");
+        return result.toLowerCase().trim();
     }
 
     @Tool(description = "Search the knowledge base for documents relevant to a question. " +
@@ -125,6 +103,7 @@ public class RagMcpTools {
             "documentId must be unique (e.g. 'company-policy-v2', 'product-faq'). " +
             "Returns a confirmation with the number of chunks created.")
     public String ingestDocument(String documentId, String text) {
+        documentId = normalizeId(documentId);
         log.info("MCP tool called: ingestDocument(documentId={})", documentId);
         try {
             List<String> chunks = chunkingService.chunk(text);
