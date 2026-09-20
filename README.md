@@ -1,5 +1,7 @@
 # datapilot-mcp — MCP Knowledge Server
 
+**Live:** https://datapilot-mcp.onrender.com
+
 Standalone Spring Boot app that exposes RAG (document search) and database query capabilities over the **Model Context Protocol (MCP)**. LLM-agnostic — any MCP host (DataPilot, Claude Desktop, Cursor, etc.) can connect and use the tools without changing a line of server code.
 
 Part of the [DataPilot](https://github.com/shamprakash2000/datapilot) learning project (Phase 6).
